@@ -1,0 +1,58 @@
+version: "3.5"
+
+services:
+  nginx:
+    image: nginx:stable-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - .:/var/www/projet_annuel
+      - ./docker/nginx/projet_annuel.conf:/etc/nginx/conf.d/projet_annuel.conf
+    depends_on:
+      - php
+    networks:
+      - projet_annuel
+
+  php:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+    volumes:
+      - .:/var/www/projet_annuel
+    networks:
+      - projet_annuel
+
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: projet_annuel
+    networks:
+      - projet_annuel
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:4
+    ports:
+      - "8080:80"
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      PMA_USER: root
+      PMA_PASSWORD: secret
+      PMA_HOSTS: mysql
+    depends_on:
+      - mysql
+    networks:
+      - projet_annuel
+
+  memcached:
+    image: memcached:1.6-alpine
+    networks:
+      - projet_annuel
+
+  redis:
+    image: redis:5-alpine
+    networks:
+      - projet_annuel
+
+networks:
+  projet_annuel:
